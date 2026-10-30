@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPI FraudGuard AI - Real-Time UPI & Digital Payment Fraud Detection</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            fintech: {
+              dark: '#080E1E',
+              navy: '#0D1527',
+              slate: '#1C2541',
+              cyan: '#5BC0BE',
+              ice: '#6FFFE9',
+              danger: '#EF4444',
+              warning: '#F59E0B',
+              success: '#10B981',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #080E1E; color: #F8FAFC; font-family: system-ui, -apple-system, sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #080E1E; }
+    ::-webkit-scrollbar-thumb { background: #1C2541; border-radius: 4px; }
+    .pulse-ring { animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased selection:bg-cyan-500/30 selection:text-white">
+
+  <!-- Sidebar -->
+  <aside class="w-full md:w-64 bg-[#0A101D] border-r border-slate-800 flex flex-col justify-between shrink-0">
+    <div>
+      <!-- Brand -->
+      <div class="h-16 flex items-center gap-3 px-6 border-b border-slate-800 bg-[#070B14]">
+        <div class="h-8 w-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-500/20">
+          🛡️
+        </div>
+        <div>
+          <h1 class="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
+            FRAUDGUARD <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded font-mono">UPI</span>
+          </h1>
+          <p className="text-[10px] text-slate-400">NPCI Sentinel AI</p>
+        </div>
+      </div>
+
+      <!-- Navigation tabs -->
+      <nav class="p-3 space-y-1 text-xs">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-cyan-400 bg-cyan-500/15 font-semibold transition">
+          <div class="flex items-center gap-2.5">
+            <span>📊</span>
+            <span>Dashboard</span>
+          </div>
+        </button>
+
+        <button onclick="switchTab('live')" id="nav-live" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white transition">
+          <div class="flex items-center gap-2.5">
+            <span>⚡</span>
+            <span>Live Monitoring</span>
+          </div>
+          <span class="bg-rose-500/20 text-rose-400 text-[9px] px-1.5 py-0.5 rounded font-bold animate-pulse">LIVE</span>
+        </button>
+
+        <button onclick="switchTab('detector')" id="nav-detector" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white transition">
+          <div class="flex items-center gap-2.5">
+            <span>🎛️</span>
+            <span>AI Fraud Detector</span>
+          </div>
+        </button>
+
+        <button onclick="switchTab('alerts')" id="nav-alerts" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white transition">
+          <div class="flex items-center gap-2.5">
+            <span>🚨</span>
+            <span>Fraud Alerts</span>
+          </div>
+          <span id="nav-alert-badge" class="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">4</span>
+        </button>
+
+        <button onclick="switchTab('history')" id="nav-history" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white transition">
+          <div class="flex items-center gap-2.5">
+            <span>📜</span>
+            <span>Transaction History</span>
+          </div>
+        </button>
+
+        <button onclick="switchTab('network')" id="nav-network" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white transition">
+          <div class="flex items-center gap-2.5">
+            <span>🕸️</span>
+            <span>Network Analysis</span>
+          </div>
+        </button>
+
+        <button onclick="switchTab('reports')" id="nav-reports" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white transition">
+          <div class="flex items-center gap-2.5">
+            <span>📈</span>
+            <span>Reports & Analytics</span>
+          </div>
+        </button>
+
+        <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white transition">
+          <div class="flex items-center gap-2.5">
+            <span>⚙️</span>
+            <span>Admin Panel</span>
+          </div>
+        </button>
+      </nav>
+    </div>
+
+    <!-- User Profile & Logout -->
+    <div class="p-3 border-t border-slate-800 bg-[#070B14]">
+      <div class="flex items-center gap-2.5 p-2 rounded-lg bg-slate-900/60 border border-slate-800">
+        <div class="h-8 w-8 rounded-full bg-cyan-500/20 text-cyan-300 font-bold flex items-center justify-center text-xs">
+          RA
+        </div>
+        <div class="truncate text-xs">
+          <p class="font-bold text-white truncate">Risk Analyst (Lead)</p>
+          <p class="text-[10px] text-cyan-400 font-mono">analyst@fraudguard.ai</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main View Area -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Navbar -->
+    <header class="h-16 bg-[#0A101D] border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+        </span>
+        <span class="text-xs font-semibold text-slate-300">
+          UPI STREAM BUS: <span class="text-emerald-400 font-mono">1,500+ TXN/SEC INGESTION</span>
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Live Simulator toggle -->
+        <button id="sim-btn" onclick="toggleSim()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 text-xs font-semibold hover:bg-cyan-500/20 transition">
+          <span>⏸️</span>
+          <span id="sim-text">Simulating Active</span>
+        </button>
+
+        <button onclick="injectAttack('mule')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-500/40 bg-rose-500/15 text-rose-300 text-xs font-semibold hover:bg-rose-500/25 transition">
+          <span>⚡</span>
+          <span>Inject Mule Burst</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content pages container -->
+    <main class="flex-1 p-6 overflow-y-auto space-y-6">
+
+      <!-- ================= 1. DASHBOARD PAGE ================= -->
+      <div id="view-dashboard" class="space-y-6">
+        <!-- Banner -->
+        <div class="rounded-2xl border border-slate-800 bg-gradient-to-r from-[#0D1836] to-[#0A101D] p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-2xl font-bold text-white">UPI Payment Security Operations Center</h2>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">ML PIPELINE ACTIVE</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Real-time fraud classification, money mule hub detection & velocity burst mitigation.</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="switchTab('detector')" class="px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-semibold hover:bg-cyan-500/30 transition">
+              Manual Evaluator
+            </button>
+            <button onclick="switchTab('live')" class="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-semibold shadow-md shadow-cyan-500/20 hover:from-cyan-400 hover:to-blue-500 transition">
+              Live Monitor Feed
+            </button>
+          </div>
+        </div>
+
+        <!-- 6 KPI Metrics -->
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          <div class="rounded-xl border border-slate-800 bg-[#0D1527] p-4">
+            <p class="text-[10px] uppercase font-bold text-slate-400">Total Transactions</p>
+            <h3 id="stat-total" class="text-xl font-bold text-white font-mono mt-1">1,542</h3>
+            <p class="text-[10px] text-emerald-400 mt-1">+14.2% today</p>
+          </div>
+          <div class="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-4">
+            <p class="text-[10px] uppercase font-bold text-emerald-400">Safe Auto-Cleared</p>
+            <h3 id="stat-safe" class="text-xl font-bold text-emerald-300 font-mono mt-1">1,284</h3>
+            <p class="text-[10px] text-slate-400 mt-1">Score: 0 - 29</p>
+          </div>
+          <div class="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4">
+            <p class="text-[10px] uppercase font-bold text-amber-400">Suspicious Review</p>
+            <h3 id="stat-susp" class="text-xl font-bold text-amber-300 font-mono mt-1">148</h3>
+            <p class="text-[10px] text-slate-400 mt-1">Score: 30 - 69</p>
+          </div>
+          <div class="rounded-xl border border-rose-500/30 bg-rose-950/20 p-4">
+            <p class="text-[10px] uppercase font-bold text-rose-400">Fraud Blocked</p>
+            <h3 id="stat-fraud" class="text-xl font-bold text-rose-300 font-mono mt-1">110</h3>
+            <p class="text-[10px] text-slate-400 mt-1">Score: 70 - 100</p>
+          </div>
+          <div class="rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-4">
+            <p class="text-[10px] uppercase font-bold text-cyan-400">Fraud Amount Saved</p>
+            <h3 id="stat-amount" class="text-xl font-bold text-white font-mono mt-1">₹14.21L</h3>
+            <p class="text-[10px] text-slate-400 mt-1">₹14,20,950 total</p>
+          </div>
+          <div class="rounded-xl border border-rose-500/30 bg-rose-950/20 p-4">
+            <p class="text-[10px] uppercase font-bold text-rose-400">Fraud Detection Rate</p>
+            <h3 id="stat-pct" class="text-xl font-bold text-rose-300 font-mono mt-1">7.13%</h3>
+            <p class="text-[10px] text-slate-400 mt-1">High-risk ratio</p>
+          </div>
+        </div>
+
+        <!-- Live Activity + Alert Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Live Activity Feed Table -->
+          <div class="lg:col-span-2 rounded-2xl border border-slate-800 bg-[#0D1527] p-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>⚡</span> Live Transaction Activity Feed
+              </h3>
+              <button onclick="switchTab('live')" class="text-xs text-cyan-400 hover:underline">Full Feed &rarr;</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr class="border-b border-slate-800 text-[11px] text-slate-400 font-sans">
+                    <th class="pb-2">Txn ID</th>
+                    <th class="pb-2">Sender VPA</th>
+                    <th class="pb-2">Receiver VPA</th>
+                    <th class="pb-2">Amount</th>
+                    <th class="pb-2">Risk</th>
+                    <th class="pb-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-feed-body" class="divide-y divide-slate-800/60">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recent Alerts -->
+          <div class="rounded-2xl border border-slate-800 bg-[#0D1527] p-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>🚨</span> Critical Alerts
+              </h3>
+              <button onclick="switchTab('alerts')" class="text-xs text-rose-400 hover:underline">View All &rarr;</button>
+            </div>
+            <div id="dash-alerts-list" class="space-y-3">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 2. LIVE MONITORING PAGE ================= -->
+      <div id="view-live" class="hidden space-y-6">
+        <div class="flex items-center justify-between rounded-2xl border border-slate-800 bg-[#0D1527] p-5">
+          <div>
+            <h2 class="text-xl font-bold text-white">Real-Time High-Volume Transaction Stream</h2>
+            <p class="text-xs text-slate-400 mt-1">Automatic classification across all incoming UPI payment packets.</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="filterLive('ALL')" class="live-tab-btn active px-3 py-1.5 rounded-lg border border-cyan-500/30 bg-cyan-500/20 text-cyan-300 text-xs font-semibold">ALL</button>
+            <button onclick="filterLive('SAFE')" class="live-tab-btn px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 text-xs font-semibold">SAFE</button>
+            <button onclick="filterLive('SUSPICIOUS')" class="live-tab-btn px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 text-xs font-semibold">SUSPICIOUS</button>
+            <button onclick="filterLive('FRAUDULENT')" class="live-tab-btn px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 text-xs font-semibold">FRAUDULENT</button>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] overflow-hidden">
+          <table class="w-full text-left text-xs font-mono">
+            <thead>
+              <tr class="bg-slate-900/80 border-b border-slate-800 text-[11px] font-sans text-slate-400">
+                <th class="p-3">Txn ID</th>
+                <th class="p-3">Sender VPA</th>
+                <th class="p-3">Receiver VPA</th>
+                <th class="p-3">Amount</th>
+                <th class="p-3">App Vector</th>
+                <th class="p-3">Risk Score</th>
+                <th class="p-3">Classification</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="live-table-body" class="divide-y divide-slate-800/60">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ================= 3. AI FRAUD DETECTOR MODULE ================= -->
+      <div id="view-detector" class="hidden space-y-6">
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] p-5">
+          <h2 class="text-xl font-bold text-white">Interactive AI Fraud Detection Module</h2>
+          <p class="text-xs text-slate-400 mt-1">Submit manual transaction parameters to test model reasoning, decision boundaries, and feature explainability.</p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button onclick="loadPreset(1)" class="px-3 py-1 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700">Preset: Swiggy Grocery (₹450 - Safe)</button>
+            <button onclick="loadPreset(2)" class="px-3 py-1 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700">Preset: High-Velocity Burst (₹14,500 - Fraud)</button>
+            <button onclick="loadPreset(3)" class="px-3 py-1 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700">Preset: Money Mule Hub (₹38,000 - Mule)</button>
+            <button onclick="loadPreset(4)" class="px-3 py-1 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700">Preset: Nocturnal ATO ₹85,000 (3 AM Emulator)</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Form -->
+          <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-[#0D1527] p-6 space-y-4">
+            <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Manual Transaction Parameters</h3>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Sender UPI ID</label>
+              <input id="input-sender" type="text" value="rohit89@okaxis" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Receiver UPI ID</label>
+              <input id="input-receiver" type="text" value="lucky.lottery@paytm" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Amount (₹ INR)</label>
+                <input id="input-amount" type="number" value="14500" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Payment App</label>
+                <select id="input-app" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                  <option value="PHONEPE">PhonePe</option>
+                  <option value="GOOGLE_PAY">Google Pay</option>
+                  <option value="PAYTM">Paytm UPI</option>
+                  <option value="CRED">CRED UPI</option>
+                  <option value="BHIM">BHIM</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="flex items-center gap-2 text-xs text-slate-300">
+                <input id="input-emulator" type="checkbox" class="rounded text-cyan-500" />
+                <span>Simulate Rooted Device / Android Virtual Emulator</span>
+              </label>
+            </div>
+            <button onclick="evaluateManual()" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 font-bold text-xs text-white shadow-lg shadow-cyan-500/20 hover:from-cyan-400 hover:to-blue-500 transition">
+              Evaluate Risk & Score
+            </button>
+          </div>
+
+          <!-- Evaluation Results -->
+          <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-[#0D1527] p-6 space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <p class="text-xs text-slate-400 uppercase font-semibold">Evaluation Verdict</p>
+                <h3 id="eval-class" class="text-lg font-black text-rose-400 mt-0.5">FRAUDULENT</h3>
+              </div>
+              <div id="eval-decision-badge" class="px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-500/20 text-rose-300 font-black text-sm">
+                BLOCK TRANSACTION
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/60">
+                <p class="text-xs text-slate-400 uppercase font-semibold">Risk Score</p>
+                <p id="eval-score" class="text-3xl font-extrabold text-white font-mono mt-1">88.5 <span class="text-xs text-slate-500">/ 100</span></p>
+              </div>
+              <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/60">
+                <p class="text-xs text-slate-400 uppercase font-semibold">Fraud Probability</p>
+                <p id="eval-prob" class="text-3xl font-extrabold text-cyan-400 font-mono mt-1">88.5%</p>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Feature Attribution Breakdown</p>
+              <div id="eval-reasons" class="space-y-2">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 4. FRAUD ALERTS PAGE ================= -->
+      <div id="view-alerts" class="hidden space-y-6">
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] p-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white">Fraud Incident Alerts & Triage</h2>
+            <p class="text-xs text-slate-400 mt-1">Manage and resolve high-risk transactions escalated by the AI model.</p>
+          </div>
+          <button onclick="seedAlerts()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-200">
+            Refresh Alerts
+          </button>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] overflow-hidden">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-900/80 border-b border-slate-800 text-[11px] text-slate-400">
+                <th class="p-3">Severity</th>
+                <th class="p-3">Alert Type</th>
+                <th class="p-3">Txn ID</th>
+                <th class="p-3">Reason</th>
+                <th class="p-3">Score</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="alerts-table-body" class="divide-y divide-slate-800/60">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ================= 5. TRANSACTION HISTORY PAGE ================= -->
+      <div id="view-history" class="hidden space-y-6">
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] p-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white">Historical Transaction Ledger</h2>
+            <p class="text-xs text-slate-400 mt-1">Search, audit, and export 1,500+ indexed digital payment records.</p>
+          </div>
+          <button onclick="downloadCSV()" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-bold text-xs text-white shadow-md transition flex items-center gap-1.5">
+            <span>📥</span> Download Full CSV Report
+          </button>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] overflow-hidden">
+          <table class="w-full text-left text-xs font-mono">
+            <thead>
+              <tr class="bg-slate-900/80 border-b border-slate-800 text-[11px] font-sans text-slate-400">
+                <th class="p-3">Txn ID</th>
+                <th class="p-3">Sender VPA</th>
+                <th class="p-3">Receiver VPA</th>
+                <th class="p-3">Amount</th>
+                <th class="p-3">Method</th>
+                <th class="p-3">Risk</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-slate-800/60">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ================= 6. NETWORK ANALYSIS PAGE ================= -->
+      <div id="view-network" class="hidden space-y-6">
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] p-5">
+          <h2 class="text-xl font-bold text-white">UPI Payment Network Graph & Money Mule Ring Analysis</h2>
+          <p class="text-xs text-slate-400 mt-1">Graph topological centrality detects aggregator hubs and circular laundering loops.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-[#070B14] p-5 flex flex-col justify-between">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-2">Live Topology Canvas</h3>
+            <div class="relative h-96 w-full rounded-xl border border-slate-800 bg-[#050811] flex items-center justify-center">
+              <svg class="w-full h-full" viewBox="0 0 500 340">
+                <!-- Central Mule -->
+                <circle cx="250" cy="170" r="26" fill="#450a0a" stroke="#EF4444" stroke-width="2.5" class="pulse-ring" />
+                <text x="250" y="174" text-anchor="middle" fill="#FECDD3" font-size="9" font-weight="bold">MULE HUB</text>
+
+                <!-- Surrounding Victim Nodes -->
+                <line x1="90" y1="80" x2="250" y2="170" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 2" />
+                <circle cx="90" cy="80" r="14" fill="#0f172a" stroke="#5BC0BE" stroke-width="1.5" />
+                <text x="90" y="83" text-anchor="middle" fill="#67e8f9" font-size="8">V1</text>
+
+                <line x1="120" y1="260" x2="250" y2="170" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 2" />
+                <circle cx="120" cy="260" r="14" fill="#0f172a" stroke="#5BC0BE" stroke-width="1.5" />
+                <text x="120" y="263" text-anchor="middle" fill="#67e8f9" font-size="8">V2</text>
+
+                <line x1="250" y1="50" x2="250" y2="170" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 2" />
+                <circle cx="250" cy="50" r="14" fill="#0f172a" stroke="#5BC0BE" stroke-width="1.5" />
+                <text x="250" y="53" text-anchor="middle" fill="#67e8f9" font-size="8">V3</text>
+
+                <line x1="410" y1="90" x2="250" y2="170" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 2" />
+                <circle cx="410" cy="90" r="14" fill="#0f172a" stroke="#5BC0BE" stroke-width="1.5" />
+                <text x="410" y="93" text-anchor="middle" fill="#67e8f9" font-size="8">V4</text>
+
+                <line x1="390" y1="260" x2="250" y2="170" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 2" />
+                <circle cx="390" cy="260" r="14" fill="#0f172a" stroke="#5BC0BE" stroke-width="1.5" />
+                <text x="390" y="263" text-anchor="middle" fill="#67e8f9" font-size="8">V5</text>
+              </svg>
+              <div class="absolute bottom-2 left-2 text-[10px] bg-slate-900 border border-slate-800 px-2 py-1 rounded text-slate-300">
+                🔴 Mule Aggregator Node (In-Degree: 9) | 🔵 Payer Accounts
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-[#0D1527] p-5 space-y-3">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-2">Flagged Money Mule Hubs</h3>
+            <div class="p-3 rounded-xl border border-rose-500/30 bg-rose-950/20">
+              <p class="font-mono text-xs font-bold text-rose-300">mule.cashout.01@paytm</p>
+              <p class="text-[11px] text-slate-400 mt-1">In-Degree: <span class="text-white font-bold">9 unique payers in 60m</span> | ₹3,84,000</p>
+            </div>
+            <div class="p-3 rounded-xl border border-rose-500/30 bg-rose-950/20">
+              <p class="font-mono text-xs font-bold text-rose-300">shadow.crypto.ramp@ybl</p>
+              <p class="text-[11px] text-slate-400 mt-1">In-Degree: <span class="text-white font-bold">7 unique payers in 60m</span> | ₹2,95,000</p>
+            </div>
+            <div class="p-3 rounded-xl border border-rose-500/30 bg-rose-950/20">
+              <p class="font-mono text-xs font-bold text-rose-300">agent.collector.hub@oksbi</p>
+              <p class="text-[11px] text-slate-400 mt-1">In-Degree: <span class="text-white font-bold">6 unique payers in 60m</span> | ₹2,10,000</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 7. REPORTS PAGE ================= -->
+      <div id="view-reports" class="hidden space-y-6">
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] p-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white">Compliance & Governance Reports</h2>
+            <p class="text-xs text-slate-400 mt-1">NPCI UPI fraud prevention audits and executive analytics.</p>
+          </div>
+          <button onclick="downloadCSV()" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white">
+            Export CSV Audit
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl border border-slate-800 bg-[#0D1527]">
+            <p class="text-xs text-slate-400 uppercase">Model Precision</p>
+            <p class="text-2xl font-bold text-emerald-400 font-mono mt-1">98.4%</p>
+          </div>
+          <div class="p-4 rounded-xl border border-slate-800 bg-[#0D1527]">
+            <p class="text-xs text-slate-400 uppercase">Model Recall</p>
+            <p class="text-2xl font-bold text-cyan-400 font-mono mt-1">96.8%</p>
+          </div>
+          <div class="p-4 rounded-xl border border-slate-800 bg-[#0D1527]">
+            <p class="text-xs text-slate-400 uppercase">False Positive Rate</p>
+            <p class="text-2xl font-bold text-white font-mono mt-1">0.62%</p>
+          </div>
+          <div class="p-4 rounded-xl border border-slate-800 bg-[#0D1527]">
+            <p class="text-xs text-slate-400 uppercase">Inference Speed</p>
+            <p class="text-2xl font-bold text-emerald-400 font-mono mt-1">12 ms</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 8. ADMIN PANEL ================= -->
+      <div id="view-admin" class="hidden space-y-6">
+        <div class="rounded-2xl border border-slate-800 bg-[#0D1527] p-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white">System Administration Console</h2>
+            <p class="text-xs text-slate-400 mt-1">Infrastructure status, user access roles, and audit trail.</p>
+          </div>
+          <button onclick="alert('Seeding 1,500 transactions complete.')" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-bold text-white">
+            Re-Seed 1,500 Transactions
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="rounded-xl border border-slate-800 bg-[#0D1527] p-5">
+            <h3 class="text-sm font-bold text-white mb-3">Authorized Roles</h3>
+            <div class="space-y-2 text-xs">
+              <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex justify-between">
+                <span>admin@fraudguard.ai (Chief Risk Officer)</span>
+                <span class="text-blue-400 font-bold">ADMIN</span>
+              </div>
+              <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex justify-between">
+                <span>analyst@fraudguard.ai (Senior Fraud Analyst)</span>
+                <span class="text-cyan-400 font-bold">ANALYST</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-[#0D1527] p-5">
+            <h3 class="text-sm font-bold text-white mb-3">Immutable Audit Ledger</h3>
+            <div class="space-y-2 text-[11px] font-mono text-slate-400">
+              <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                [2026-10-30 11:20:15] ALERT_REVIEWED: Txn UPI20261030112001 marked as CONFIRMED_FRAUD by analyst@fraudguard.ai
+              </div>
+              <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                [2026-10-30 11:15:40] USER_LOGIN: admin@fraudguard.ai authenticated via JWT
+              </div>
+              <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                [2026-10-30 11:02:11] SIMULATOR_ACTIVE: Real-time high volume generator active
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Interactive JavaScript logic -->
+  <script>
+    const mockTxns = [
+      { id: "UPI20261030112401", sender: "rohit89@okaxis", receiver: "lucky.lottery@paytm", amt: 14500, risk: 88, class: "FRAUDULENT", status: "BLOCKED", app: "PHONEPE" },
+      { id: "UPI20261030112402", sender: "aarav.sharma@oksbi", receiver: "swiggy.pay@icici", amt: 480, risk: 12, class: "SAFE", status: "COMPLETED", app: "GOOGLE_PAY" },
+      { id: "UPI20261030112403", sender: "priya.nair@okhdfcbank", receiver: "mule.cashout.01@paytm", amt: 38000, risk: 94, class: "FRAUDULENT", status: "BLOCKED", app: "PHONEPE" },
+      { id: "UPI20261030112404", sender: "ananya.singh@okaxis", receiver: "zomato.order@hdfc", amt: 720, risk: 14, class: "SAFE", status: "COMPLETED", app: "PAYTM" },
+      { id: "UPI20261030112405", sender: "vikram.aditya@okicici", receiver: "crypto.p2p.clearing@okaxis", amt: 85000, risk: 96, class: "FRAUDULENT", status: "BLOCKED", app: "CRED" },
+      { id: "UPI20261030112406", sender: "sneha.patel@ybl", receiver: "amazon.upi@axis", amt: 2499, risk: 18, class: "SAFE", status: "COMPLETED", app: "GOOGLE_PAY" },
+      { id: "UPI20261030112407", sender: "rahul.verma@ybl", receiver: "fastcash.reward@ybl", amt: 22000, risk: 58, class: "SUSPICIOUS", status: "FLAG_REVIEW", app: "PHONEPE" },
+    ];
+
+    let liveFeed = [...mockTxns];
+    let isSimulating = true;
+    let simInterval = null;
+
+    function renderFeed() {
+      const tbody = document.getElementById("dash-feed-body");
+      const liveBody = document.getElementById("live-table-body");
+      const historyBody = document.getElementById("history-table-body");
+      
+      const rowsHtml = liveFeed.slice(0, 8).map(t => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2 text-cyan-400 font-semibold">${t.id}</td>
+          <td class="py-2 text-slate-300 font-sans">${t.sender}</td>
+          <td class="py-2 text-slate-300 font-sans">${t.receiver}</td>
+          <td class="py-2 font-bold text-white">₹${t.amt.toLocaleString()}</td>
+          <td class="py-2">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.risk >= 70 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : t.risk >= 30 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+              ${t.risk}/100
+            </span>
+          </td>
+          <td class="py-2 font-sans">
+            <span class="text-[10px] font-semibold ${t.status === 'BLOCKED' ? 'text-rose-400' : t.status === 'FLAG_REVIEW' ? 'text-amber-400' : 'text-emerald-400'}">
+              ${t.status}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+
+      tbody.innerHTML = rowsHtml;
+      liveBody.innerHTML = liveFeed.map(t => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="p-3 text-cyan-400 font-semibold">${t.id}</td>
+          <td class="p-3 text-slate-300 font-sans">${t.sender}</td>
+          <td class="p-3 text-slate-300 font-sans">${t.receiver}</td>
+          <td class="p-3 font-bold text-white">₹${t.amt.toLocaleString()}</td>
+          <td class="p-3 font-sans text-slate-400">${t.app || 'PHONEPE'}</td>
+          <td class="p-3 font-bold ${t.risk >= 70 ? 'text-rose-400' : t.risk >= 30 ? 'text-amber-400' : 'text-emerald-400'}">${t.risk}</td>
+          <td class="p-3 font-sans font-bold text-[10px] ${t.risk >= 70 ? 'text-rose-400' : t.risk >= 30 ? 'text-amber-400' : 'text-emerald-400'}">${t.class}</td>
+          <td class="p-3 font-sans font-semibold ${t.status === 'BLOCKED' ? 'text-rose-400' : t.status === 'FLAG_REVIEW' ? 'text-amber-400' : 'text-emerald-400'}">${t.status}</td>
+        </tr>
+      `).join('');
+
+      historyBody.innerHTML = liveFeed.map(t => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="p-3 text-cyan-400 font-semibold">${t.id}</td>
+          <td class="p-3 text-slate-300 font-sans">${t.sender}</td>
+          <td class="p-3 text-slate-300 font-sans">${t.receiver}</td>
+          <td class="p-3 font-bold text-white">₹${t.amt.toLocaleString()}</td>
+          <td class="p-3 font-sans text-slate-400">${t.app || 'PHONEPE'}</td>
+          <td class="p-3 font-bold ${t.risk >= 70 ? 'text-rose-400' : t.risk >= 30 ? 'text-amber-400' : 'text-emerald-400'}">${t.risk}</td>
+          <td class="p-3 font-sans font-semibold ${t.status === 'BLOCKED' ? 'text-rose-400' : t.status === 'FLAG_REVIEW' ? 'text-amber-400' : 'text-emerald-400'}">${t.status}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAlerts() {
+      const alertsList = document.getElementById("dash-alerts-list");
+      const alertsTable = document.getElementById("alerts-table-body");
+
+      const alerts = [
+        { id: 1, type: "MONEY_MULE_HUB", severity: "CRITICAL", reason: "Receiver accepted funds from 9 distinct senders in 60m", score: 94, txn: "UPI20261030112403", status: "NEW" },
+        { id: 2, type: "VELOCITY_SPIKE", severity: "HIGH", reason: "5 rapid transactions in 3 minutes from new Android IP", score: 88, txn: "UPI20261030112401", status: "UNDER_REVIEW" },
+        { id: 3, type: "HIGH_VALUE_ATO", severity: "CRITICAL", reason: "Amount ₹85,000 is 18x higher than user avg via emulator", score: 96, txn: "UPI20261030112405", status: "CONFIRMED_FRAUD" },
+        { id: 4, type: "SUSPICIOUS_PATTERN", severity: "MEDIUM", reason: "First time high-value payment to new unverified VPA", score: 58, txn: "UPI20261030112407", status: "NEW" },
+      ];
+
+      alertsList.innerHTML = alerts.slice(0, 3).map(a => `
+        <div class="p-3 rounded-xl border border-rose-500/20 bg-rose-950/20">
+          <div class="flex justify-between items-center text-[10px]">
+            <span class="font-bold text-rose-400 bg-rose-500/20 px-1.5 py-0.5 rounded">${a.type}</span>
+            <span class="font-mono text-slate-300">Score: <strong class="text-rose-400">${a.score}</strong></span>
+          </div>
+          <p class="text-xs text-slate-200 mt-1.5">${a.reason}</p>
+        </div>
+      `).join('');
+
+      alertsTable.innerHTML = alerts.map(a => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="p-3 font-bold text-rose-400 text-[10px]">${a.severity}</td>
+          <td class="p-3 font-bold text-white">${a.type}</td>
+          <td class="p-3 font-mono text-cyan-400">${a.txn}</td>
+          <td class="p-3 text-slate-300">${a.reason}</td>
+          <td class="p-3 font-mono font-bold text-white">${a.score}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">${a.status}</span></td>
+          <td class="p-3 text-right">
+            <button onclick="alert('Alert incident marked reviewed.')" class="px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 font-semibold hover:bg-cyan-500/30">Triage</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function switchTab(tab) {
+      const views = ['dashboard', 'live', 'detector', 'alerts', 'history', 'network', 'reports', 'admin'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        const nav = document.getElementById('nav-' + v);
+        if (el) el.classList.add('hidden');
+        if (nav) {
+          nav.classList.remove('text-cyan-400', 'bg-cyan-500/15', 'font-semibold');
+          nav.classList.add('text-slate-400');
+        }
+      });
+
+      const activeEl = document.getElementById('view-' + tab);
+      const activeNav = document.getElementById('nav-' + tab);
+      if (activeEl) activeEl.classList.remove('hidden');
+      if (activeNav) {
+        activeNav.classList.remove('text-slate-400');
+        activeNav.classList.add('text-cyan-400', 'bg-cyan-500/15', 'font-semibold');
+      }
+    }
+
+    function toggleSim() {
+      isSimulating = !isSimulating;
+      document.getElementById('sim-text').innerText = isSimulating ? 'Simulating Active' : 'Simulation Paused';
+    }
+
+    function injectAttack(type) {
+      const now = new Date();
+      const id = "UPI" + now.getTime();
+      const newTxn = {
+        id: id,
+        sender: "victim" + Math.floor(Math.random()*900+100) + "@okaxis",
+        receiver: "mule.cashout.01@paytm",
+        amt: Math.floor(Math.random()*30000+15000),
+        risk: 94,
+        class: "FRAUDULENT",
+        status: "BLOCKED",
+        app: "PHONEPE"
+      };
+      liveFeed.unshift(newTxn);
+      renderFeed();
+      alert("🚨 INJECTED FRAUD ATTACK: " + newTxn.id + " (₹" + newTxn.amt + " into Mule Hub). Instantly BLOCKED with Score 94!");
+    }
+
+    function loadPreset(idx) {
+      if (idx === 1) {
+        document.getElementById('input-sender').value = 'aarav.sharma@oksbi';
+        document.getElementById('input-receiver').value = 'swiggy.pay@icici';
+        document.getElementById('input-amount').value = 480;
+        document.getElementById('input-app').value = 'GOOGLE_PAY';
+        document.getElementById('input-emulator').checked = false;
+      } else if (idx === 2) {
+        document.getElementById('input-sender').value = 'rohit89@okaxis';
+        document.getElementById('input-receiver').value = 'lucky.lottery@paytm';
+        document.getElementById('input-amount').value = 14500;
+        document.getElementById('input-app').value = 'PHONEPE';
+        document.getElementById('input-emulator').checked = false;
+      } else if (idx === 3) {
+        document.getElementById('input-sender').value = 'priya.nair@okhdfcbank';
+        document.getElementById('input-receiver').value = 'mule.cashout.01@paytm';
+        document.getElementById('input-amount').value = 38000;
+        document.getElementById('input-app').value = 'PHONEPE';
+        document.getElementById('input-emulator').checked = false;
+      } else if (idx === 4) {
+        document.getElementById('input-sender').value = 'vikram.aditya@okicici';
+        document.getElementById('input-receiver').value = 'crypto.p2p.clearing@okaxis';
+        document.getElementById('input-amount').value = 85000;
+        document.getElementById('input-app').value = 'CRED';
+        document.getElementById('input-emulator').checked = true;
+      }
+      evaluateManual();
+    }
+
+    function evaluateManual() {
+      const sender = document.getElementById('input-sender').value;
+      const receiver = document.getElementById('input-receiver').value;
+      const amount = parseFloat(document.getElementById('input-amount').value) || 0;
+      const isEmulator = document.getElementById('input-emulator').checked;
+
+      let score = 12;
+      let reasons = [];
+
+      if (isEmulator) {
+        score += 35;
+        reasons.push({ feat: "Virtual Device / Emulator Flag", impact: "HIGH_RISK", desc: "Rooted OS environment detected", pts: 35 });
+      }
+      if (receiver.includes('mule') || receiver.includes('crypto') || receiver.includes('lottery')) {
+        score += 42;
+        reasons.push({ feat: "Money Mule Aggregator VPA", impact: "HIGH_RISK", desc: "Receiver has abnormal in-degree fan-in ratio", pts: 42 });
+      }
+      if (amount >= 30000) {
+        score += 25;
+        reasons.push({ feat: "High-Value Transfer Spike", impact: "HIGH_RISK", desc: "Transaction amount exceeds 30-day baseline spend by 9.4x", pts: 25 });
+      } else if (amount >= 10000) {
+        score += 15;
+        reasons.push({ feat: "Elevated Transfer Amount", impact: "SUSPICIOUS", desc: "Transaction amount is 3.5x higher than user average", pts: 15 });
+      }
+
+      if (reasons.length === 0) {
+        reasons.push({ feat: "Normal Retail Pattern", impact: "SAFE", desc: "Transaction adheres to normal spending baseline and merchant profile", pts: 0 });
+      }
+
+      score = Math.min(99, Math.max(8, score));
+      const decision = score >= 70 ? 'BLOCK' : score >= 30 ? 'REVIEW' : 'ALLOW';
+      const classification = score >= 70 ? 'FRAUDULENT' : score >= 30 ? 'SUSPICIOUS' : 'SAFE';
+
+      document.getElementById('eval-score').innerHTML = score.toFixed(1) + ' <span class="text-xs text-slate-500">/ 100</span>';
+      document.getElementById('eval-prob').innerText = (score) + '%';
+      document.getElementById('eval-class').innerText = classification;
+      document.getElementById('eval-class').className = 'text-lg font-black mt-0.5 ' + (score >= 70 ? 'text-rose-400' : score >= 30 ? 'text-amber-400' : 'text-emerald-400');
+
+      const badge = document.getElementById('eval-decision-badge');
+      badge.innerText = decision + ' TRANSACTION';
+      badge.className = 'px-4 py-2 rounded-xl border font-black text-sm ' + (
+        decision === 'BLOCK' ? 'border-rose-500/40 bg-rose-500/20 text-rose-300' :
+        decision === 'REVIEW' ? 'border-amber-500/40 bg-amber-500/20 text-amber-300' :
+        'border-emerald-500/40 bg-emerald-500/20 text-emerald-300'
+      );
+
+      document.getElementById('eval-reasons').innerHTML = reasons.map(r => `
+        <div class="p-3 rounded-xl border ${r.impact === 'HIGH_RISK' ? 'border-rose-500/30 bg-rose-950/20 text-rose-300' : r.impact === 'SUSPICIOUS' ? 'border-amber-500/30 bg-amber-950/20 text-amber-300' : 'border-slate-800 bg-slate-900/60 text-slate-300'} flex justify-between text-xs">
+          <div>
+            <p class="font-bold text-white">${r.feat}</p>
+            <p class="text-[11px] opacity-90">${r.desc}</p>
+          </div>
+          <span class="font-mono font-bold">+${r.pts} pts</span>
+        </div>
+      `).join('');
+    }
+
+    function downloadCSV() {
+      let csv = "Txn ID,Sender,Receiver,Amount,App,Risk Score,Status\n";
+      liveFeed.forEach(t => {
+        csv += `${t.id},${t.sender},${t.receiver},${t.amt},${t.app || 'PHONEPE'},${t.risk},${t.status}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "upi_fraud_report.csv";
+      a.click();
+    }
+
+    // Auto-stream simulator
+    setInterval(() => {
+      if (!isSimulating) return;
+      const id = "UPI" + Date.now().toString().slice(3);
+      const isFraud = Math.random() < 0.25;
+      const amt = isFraud ? Math.floor(Math.random()*45000+12000) : Math.floor(Math.random()*3500+100);
+      const score = isFraud ? Math.floor(Math.random()*25+72) : Math.floor(Math.random()*20+5);
+      const newTxn = {
+        id: id,
+        sender: "user" + Math.floor(Math.random()*50+10) + "@okaxis",
+        receiver: isFraud ? "mule.cashout.01@paytm" : "swiggy.pay@icici",
+        amt: amt,
+        risk: score,
+        class: score >= 70 ? "FRAUDULENT" : score >= 30 ? "SUSPICIOUS" : "SAFE",
+        status: score >= 70 ? "BLOCKED" : score >= 30 ? "FLAG_REVIEW" : "COMPLETED",
+        app: "PHONEPE"
+      };
+      liveFeed.unshift(newTxn);
+      if (liveFeed.length > 50) liveFeed.pop();
+      renderFeed();
+    }, 3000);
+
+    // Initial render
+    renderFeed();
+    renderAlerts();
+    evaluateManual();
+  </script>
+</body>
+</html>
