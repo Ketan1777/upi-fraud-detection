@@ -13,6 +13,9 @@ import HistoryPage from './pages/HistoryPage';
 import NetworkAnalysisPage from './pages/NetworkAnalysisPage';
 import ReportsPage from './pages/ReportsPage';
 import AdminPage from './pages/AdminPage';
+import NPCIDashboardPage from './pages/NPCIDashboardPage';
+import AMLCompliancePage from './pages/AMLCompliancePage';
+import MerchantRiskPage from './pages/MerchantRiskPage';
 
 export default function App() {
   return (
@@ -34,6 +37,9 @@ export default function App() {
           <Route path="/network" element={<NetworkAnalysisPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/npci" element={<NPCIDashboardPage />} />
+          <Route path="/aml" element={<AMLCompliancePage />} />
+          <Route path="/merchants" element={<MerchantRiskPage />} />
         </Route>
 
         {/* Catch-all fallback */}

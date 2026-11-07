@@ -13,6 +13,9 @@ import {
   LogOut,
   ChevronRight,
   Zap,
+  Globe2,
+  Gavel,
+  Store,
 } from 'lucide-react';
 import { getUser, authApi } from '../services/api';
 
@@ -24,6 +27,11 @@ const navigation = [
   { name: 'Transaction History', href: '/history', icon: History },
   { name: 'Network Analysis', href: '/network', icon: Share2 },
   { name: 'Reports & Analytics', href: '/reports', icon: FileBarChart2 },
+  { name: '─', href: null, divider: true },
+  { name: 'NPCI Ecosystem', href: '/npci', icon: Globe2, badge: 'NEW' },
+  { name: 'AML & Compliance', href: '/aml', icon: Gavel },
+  { name: 'Merchant Risk', href: '/merchants', icon: Store },
+  { name: '─', href: null, divider: true },
   { name: 'Admin Panel', href: '/admin', icon: ShieldCheck, adminOnly: true },
 ];
 
@@ -56,6 +64,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           {/* Navigation Links */}
           <nav className="space-y-1 px-3 py-4">
             {navigation.map((item) => {
+              if (item.divider) return <div key={Math.random()} className="my-1 mx-3 border-t border-slate-800/60" />;
               if (item.adminOnly && user?.role !== 'admin') return null;
               const Icon = item.icon;
               return (
